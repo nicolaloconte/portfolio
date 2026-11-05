@@ -1,5 +1,5 @@
 /** Portfolio configuration: edit these values to customize the site. */
-export const GITHUB_USERNAME = 'nicolaloconte';
+export const GITHUB_USERNAME = 'nicolcnt';
 export const GITHUB_URL = `https://github.com/${GITHUB_USERNAME}`;
 
 /** Exclude the test repository. Profile README has a separate GitHub section. */
