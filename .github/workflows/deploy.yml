@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Build Angular for project Pages URL
-        run: npm run build -- --base-href /cv-portfolio/
+        run: npm run build -- --base-href /portfolio/
 
       - name: Set up GitHub Pages
         uses: actions/configure-pages@v5
