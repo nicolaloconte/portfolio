@@ -1,138 +1,165 @@
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { CONTACTS, GITHUB_URL, PROJECT_DETAILS, ProjectEditorial, SKILL_GROUPS } from './data/portfolio.config';
+import { GithubRepository, loadGithubProjects, OFFLINE_FALLBACK } from './services/github.service';
 
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
-
-type SkillFilter = 'all' | 'backend' | 'web' | 'db' | 'tools' | 'soft';
+type Theme = 'dark' | 'light';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, MatToolbarModule, MatButtonModule, MatChipsModule],
+  imports: [CommonModule],
   templateUrl: './app.html',
-  styleUrls: ['./app.scss'],
+  styleUrl: './app.scss',
 })
-export class AppComponent implements AfterViewInit, OnDestroy {
-  // --- Skills filter ---
-  skillFilter: SkillFilter = 'all';
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private requestController?: AbortController;
+  private intersectionObserver?: IntersectionObserver;
+  private previouslyFocused?: HTMLElement;
 
-  skills = {
-    backend: ['Java', 'OOP (Java)', 'Spring Framework'],
-    web: ['HTML', 'CSS', 'JavaScript'],
-    db: ['SQL', 'MySQL', 'Gestione e interrogazione dati'],
-    tools: ['Eclipse', 'Visual Studio', 'Ticketing'],
-    soft: ['Team work', 'Problem solving', 'Gestione priorità', 'Affidabilità', 'Calma sotto pressione'],
-  } as const;
+  readonly contacts = CONTACTS;
+  readonly githubUrl = GITHUB_URL;
+  readonly skillGroups = SKILL_GROUPS;
+  readonly theme = signal<Theme>('dark');
+  readonly menuOpen = signal(false);
+  readonly projects = signal<GithubRepository[]>([]);
+  readonly loading = signal(true);
+  readonly githubError = signal(false);
+  readonly selectedProject = signal<GithubRepository | null>(null);
 
-  setSkillFilter(v: SkillFilter) {
-    this.skillFilter = v;
-  }
-
-  filteredSkills(): string[] {
-    if (this.skillFilter === 'all') {
-      return [
-        ...this.skills.backend,
-        ...this.skills.web,
-        ...this.skills.db,
-        ...this.skills.tools,
-        ...this.skills.soft,
-      ];
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      let stored: string | null = null;
+      try { stored = window.localStorage.getItem('nico-theme'); } catch { /* restricted storage */ }
+      const systemPreference = window.matchMedia?.('(prefers-color-scheme: light)').matches;
+      this.applyTheme(stored === 'dark' || stored === 'light' ? stored : systemPreference ? 'light' : 'dark');
+      void this.refreshProjects();
     }
-    return [...this.skills[this.skillFilter]];
   }
-
-  // --- Scroll handlers cleanup ---
-  private onScrollUpdateLine?: () => void;
-  private onResizeUpdateLine?: () => void;
 
   ngAfterViewInit(): void {
-    // Glow on scroll for cards
-    const cards = Array.from(document.querySelectorAll<HTMLElement>('.t-card, .subcard'));
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            (e.target as HTMLElement).classList.add('is-inview');
-            io.unobserve(e.target);
-          }
+    if (!this.isBrowser) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      document.querySelectorAll('.reveal').forEach((node) => node.classList.add('visible'));
+      return;
+    }
+    this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
         }
-      },
-      { threshold: 0.25, rootMargin: '0px 0px -10% 0px' }
-    );
-    cards.forEach((el) => io.observe(el));
-
-    // Timeline fill on scroll
-    const timeline = document.querySelector<HTMLElement>('.timeline');
-    const fill = document.getElementById('timelineFill') as HTMLElement | null;
-
-    const updateLine = () => {
-      if (!timeline || !fill) return;
-
-      const rect = timeline.getBoundingClientRect();
-      const viewH = window.innerHeight || document.documentElement.clientHeight;
-
-      const start = viewH * 0.2;
-      const end = viewH * 0.8;
-
-      const denom = rect.height - (end - start);
-      const raw = denom > 0 ? (start - rect.top) / denom : 0;
-      const p = Math.max(0, Math.min(1, raw));
-
-      fill.style.height = `${p * 100}%`;
-    };
-
-    this.onScrollUpdateLine = updateLine;
-    this.onResizeUpdateLine = updateLine;
-
-    window.addEventListener('scroll', this.onScrollUpdateLine, { passive: true });
-    window.addEventListener('resize', this.onResizeUpdateLine);
-    updateLine();
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -35px 0px' });
+    document.querySelectorAll('.reveal').forEach((node) => this.intersectionObserver?.observe(node));
   }
 
   ngOnDestroy(): void {
-    if (this.onScrollUpdateLine) window.removeEventListener('scroll', this.onScrollUpdateLine);
-    if (this.onResizeUpdateLine) window.removeEventListener('resize', this.onResizeUpdateLine);
+    this.requestController?.abort();
+    this.intersectionObserver?.disconnect();
+    if (this.isBrowser) document.body.classList.remove('dialog-open');
   }
 
-  /**
-   * Smooth scroll (no teleport) with navbar offset.
-   * Used by app.html via (click)="smoothScroll('id')"
-   */
-  smoothScroll(id: string) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    const headerOffset = 84;
-    const target = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-
-    const start = window.scrollY;
-    const distance = target - start;
-    const duration = 650; // ms
-
-    const easeInOutCubic = (t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    const startTime = performance.now();
-
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      const eased = easeInOutCubic(progress);
-
-      window.scrollTo(0, start + distance * eased);
-
-      if (progress < 1) requestAnimationFrame(step);
-    };
-
-    requestAnimationFrame(step);
+  async refreshProjects(): Promise<void> {
+    if (!this.isBrowser) return;
+    this.requestController?.abort();
+    const controller = new AbortController();
+    this.requestController = controller;
+    this.loading.set(true);
+    this.githubError.set(false);
+    try {
+      const data = await loadGithubProjects(controller.signal);
+      if (!controller.signal.aborted) this.projects.set(data);
+    } catch {
+      if (!controller.signal.aborted) {
+        this.githubError.set(true);
+        this.projects.set(OFFLINE_FALLBACK);
+      }
+    } finally {
+      if (!controller.signal.aborted) this.loading.set(false);
+    }
   }
 
-  /**
-   * Alias kept for compatibility (if any old template still calls scrollTo).
-   */
-  scrollTo(id: string) {
-    this.smoothScroll(id);
+  toggleTheme(): void {
+    const next: Theme = this.theme() === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
+    try { window.localStorage.setItem('nico-theme', next); } catch { /* restricted storage */ }
+  }
+
+  private applyTheme(value: Theme): void {
+    this.theme.set(value);
+    if (this.isBrowser) document.documentElement.setAttribute('data-theme', value);
+  }
+
+  toggleMenu(): void { this.menuOpen.update((open) => !open); }
+
+  scrollToSection(id: string): void {
+    if (!this.isBrowser) return;
+    this.menuOpen.set(false);
+    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReduced ? 'instant' : 'smooth', block: 'start' });
+  }
+
+  editorial(repo: GithubRepository): ProjectEditorial | undefined {
+    return PROJECT_DETAILS[repo.name.toLowerCase()];
+  }
+
+  projectTitle(repo: GithubRepository): string {
+    return this.editorial(repo)?.name ?? repo.name.replace(/[-_]/g, ' ');
+  }
+
+  projectDescription(repo: GithubRepository): string {
+    return this.editorial(repo)?.summary ?? repo.description ?? 'Scopri il repository, il codice sorgente e i dettagli del progetto su GitHub.';
+  }
+
+  projectTags(repo: GithubRepository): string[] {
+    const curated = this.editorial(repo)?.tags;
+    if (curated?.length) return curated;
+    const tags = [...new Set([repo.language, ...(repo.topics ?? [])].filter((item): item is string => !!item))];
+    return tags.slice(0, 4);
+  }
+
+  openProject(repo: GithubRepository, event?: MouseEvent): void {
+    if (this.isBrowser) {
+      this.previouslyFocused = (event?.currentTarget as HTMLElement) ?? undefined;
+      document.body.classList.add('dialog-open');
+    }
+    this.selectedProject.set(repo);
+    if (this.isBrowser) requestAnimationFrame(() => document.querySelector<HTMLElement>('.modal-close')?.focus());
+  }
+
+  closeProject(): void {
+    this.selectedProject.set(null);
+    if (this.isBrowser) {
+      document.body.classList.remove('dialog-open');
+      requestAnimationFrame(() => this.previouslyFocused?.focus());
+    }
+  }
+
+  /** Minimal keyboard focus trap for the project dialog. */
+  trapDialogFocus(event: KeyboardEvent): void {
+    if (event.key !== 'Tab' || !this.isBrowser) return;
+    const dialog = document.querySelector<HTMLElement>('.project-modal');
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    if (focusable.length === 0) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOnEscape(): void {
+    if (this.selectedProject()) this.closeProject();
+    else this.menuOpen.set(false);
+  }
+
+  safeDemoUrl(repo: GithubRepository): string | null {
+    try {
+      const value = new URL(repo.homepage ?? '');
+      return value.protocol === 'https:' ? value.href : null;
+    } catch { return null; }
   }
 }

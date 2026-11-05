@@ -1,25 +1,30 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app';
+import { filterPortfolioProjects, GithubRepository } from './services/github.service';
 
-describe('AppComponent', () => {
+describe('Nico portfolio', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-    }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AppComponent] }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render the brand name', async () => {
+  it('renders the developer-focused introduction', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
+    const html = fixture.nativeElement as HTMLElement;
+    expect(html.textContent).toContain('Full Stack Developer');
+    expect(html.textContent).toContain('Progetti');
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('MyCV');
+  it('excludes test and profile repositories', () => {
+    const makeRepo = (name: string): GithubRepository => ({
+      id: name.length, name, full_name: `nicolaloconte/${name}`,
+      html_url: `https://github.com/nicolaloconte/${name}`, description: null,
+      homepage: null, language: 'TypeScript', topics: [], updated_at: '2026-11-01',
+      archived: false, fork: false,
+    });
+    const result = filterPortfolioProjects([
+      makeRepo('pokexplorer'), makeRepo('pokexplorer-test'), makeRepo('nicolaloconte'), makeRepo('new-app'),
+    ]);
+    expect(result.map((repo) => repo.name)).toEqual(['pokexplorer', 'new-app']);
   });
 });

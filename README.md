@@ -1,59 +1,41 @@
-# CvPortfolio
+# Nico — Developer Portfolio
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.2.
+Portfolio **single-page** in italiano, realizzato con **Angular 21, TypeScript e SCSS**. Nessun CV, storico professionale o PDF.
 
-## Development server
-
-To start a local development server, run:
+## Avvio
 
 ```bash
-ng serve
+npm ci
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Visita `http://localhost:4200/`. Build produzione: `npm run build`.
 
-## Code scaffolding
+## Progetti GitHub — aggiornamento automatico
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Il portfolio carica i repository pubblici tramite la **GitHub REST API** in `src/app/services/github.service.ts` (nessun token nel browser). Mostra tutti i repository pubblici di `nicolaloconte`, tranne:
 
-```bash
-ng generate component component-name
-```
+- `pokexplorer-test` (esclusione esplicita)
+- `nicolaloconte` (repository di profilo, collegato separatamente nella sezione GitHub)
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+La lista viene aggiornata a ogni apertura o ricaricamento della pagina, ordinata per ultimo aggiornamento. GitHub applica un limite alle chiamate non autenticate (in genere **60 richieste per ora per IP**). In caso di errore viene mostrato un avviso e un solo progetto di esempio *esplicitamente indicato come fallback*, con possibilità di riprovare. Non è necessaria alcuna chiave API.
 
-```bash
-ng generate --help
-```
+Le descrizioni personalizzate del progetto `pokexplorer` si trovano in `src/app/data/portfolio.config.ts` (`PROJECT_DETAILS`). Gli altri repository sono mostrati automaticamente con titolo, descrizione, linguaggio e topic disponibili nella API GitHub. Il dettaglio si apre senza lasciare la pagina.
 
-## Building
+## Contenuti e contatti
 
-To build the project run:
+Modifica `src/app/data/portfolio.config.ts`:
 
-```bash
-ng build
-```
+- `SKILL_GROUPS`: tecnologie/strumenti in categorie con icone monogramma.
+- `PROJECT_DETAILS`: schede editoriali facoltative per singoli repository.
+- `CONTACTS`: email, GitHub, Discord e Instagram.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+**Discord e Instagram sono vuoti di proposito:** non sono stati forniti gli URL verificati. Nel sito compaiono come *da configurare* invece di link inventati. Imposta gli URL reali per attivarli automaticamente.
 
-## Running unit tests
+## UI / accessibilità
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Tema dark/light con preferenza salvata localmente, mobile responsive, animazioni rispettose di `prefers-reduced-motion`, navigazione da tastiera e modale con chiusura su Escape e gestione del focus. Nessuna libreria JS aggiuntiva.
 
-```bash
-ng test
-```
+## Deployment
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+È incluso `netlify.toml` per Netlify. Puoi anche usare altre piattaforme che supportino build Angular statiche (output `dist/nico-developer-portfolio/browser`). In hosting su sottopercorso, configura il base-href Angular.

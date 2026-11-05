@@ -1,6 +1,6 @@
 [build]
-  command = "ng build"
-  publish = "dist/cv-portfolio/browser"
+  command = "npm run build"
+  publish = "dist/nico-developer-portfolio/browser"
 
 [[redirects]]
   from = "/*"

@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "cv-portfolio": {
+    "nico-developer-portfolio": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -24,17 +24,17 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-"assets": [
-  {
-    "glob": "**/*",
-    "input": "public"
-  },
-  {
-    "glob": "**/*",
-    "input": "src/assets",
-    "output": "assets"
-  }
-],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              }
+            ],
             "styles": [
               "src/styles.scss"
             ]
@@ -44,13 +44,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "600kB",
                   "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "30kB",
+                  "maximumError": "40kB"
                 }
               ],
               "outputHashing": "all"
@@ -67,10 +67,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "cv-portfolio:build:production"
+              "buildTarget": "nico-developer-portfolio:build:production"
             },
             "development": {
-              "buildTarget": "cv-portfolio:build:development"
+              "buildTarget": "nico-developer-portfolio:build:development"
             }
           },
           "defaultConfiguration": "development"
