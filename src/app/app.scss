@@ -300,3 +300,72 @@ a.contact-card:hover { border-color: var(--violet); transform: translateY(-3px);
   .api-alert { flex-direction: column; align-items: start; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+
+
+.visual-taskmanager {
+  background:
+    radial-gradient(circle at 80% 15%, #6545b980, transparent 60%),
+    linear-gradient(135deg, #1d214a, #11182e);
+}
+
+.tm-board {
+  position: relative;
+  z-index: 2;
+  width: min(80%, 360px);
+  padding: 14px;
+  border: 1px solid #7771a0;
+  border-radius: 14px;
+  background: #121729;
+  color: #eef0ff;
+  font-family: monospace;
+  box-shadow: 0 20px 45px #0006;
+  transform: rotate(-3deg);
+  transition: transform .3s ease;
+}
+
+.project-card:hover .tm-board {
+  transform: rotate(0deg) translateY(-5px);
+}
+
+.tm-header {
+  display: flex;
+  justify-content: space-between;
+  color: #bba5ff;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.tm-items > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid #ffffff15;
+  font-size: 10px;
+}
+
+.tm-items em {
+  margin-left: auto;
+  font-size: 8px;
+  font-style: normal;
+  color: #67ddba;
+}
+
+.tm-progress {
+  height: 4px;
+  margin-top: 12px;
+  background: #ffffff20;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tm-progress span {
+  display: block;
+  width: 66%;
+  height: 100%;
+  background: linear-gradient(90deg, #54dab6, #ac89ff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-board { transition: none; }
+}
