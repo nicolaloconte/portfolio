@@ -88,6 +88,21 @@ export interface ProjectEditorial {
 
 /** Optional editorial details supplement public GitHub API metadata. */
 export const PROJECT_DETAILS: Record<string, ProjectEditorial> = {
+  taskmanager: {
+    name: 'Task Manager',
+    kicker: 'CONSOLE APP / C# + .NET',
+    summary: 'Applicazione console sviluppata in C# e .NET 10 per organizzare e gestire attività, con stati, priorità, filtri e persistenza dei dati in JSON.',
+    highlights: [
+      'Creazione, modifica, ricerca ed eliminazione delle attività',
+      'Gestione degli stati e delle priorità',
+      'Architettura a livelli e programmazione OOP',
+      'Persistenza JSON e ricerche LINQ',
+      'Test automatici con xUnit'
+    ],
+    tags: ['C#', '.NET 10', 'OOP', 'LINQ', 'JSON', 'xUnit'],
+    style: 'code'
+  },
+
   pokexplorer: {
     name: 'Pokéxplorer',
     kicker: 'WEB GAME / INTERACTIVE',
