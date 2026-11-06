@@ -106,8 +106,24 @@
             <article class="project-card">
               <button class="project-card-hit" type="button" (click)="openProject(project, $event)" [attr.aria-label]="'Apri dettagli del progetto ' + projectTitle(project)">
                 <div class="project-visual" [class.visual-taskmanager]="project.name.toLowerCase() === 'taskmanager'" [class.visual-arcade]="editorial(project)?.style === 'arcade'" [class.visual-code]="editorial(project)?.style !== 'arcade'">
-                  <span class="visual-topline">PROJECT_{{ (index + 1).toString().padStart(2, '0') }} <span>↗</span></span>
-                  @if (editorial(project)?.style === 'arcade') {
+                  <span class="visual-topline">PROJECT_{{ (index + 1).toString().padStart(2, '0') }} <span>↗</span></span>        
+                  @if (project.name.toLowerCase() === 'taskmanager') {
+                    <div class="tm-board" aria-hidden="true">
+                      <div class="tm-header">
+                        <strong>✓ taskmanager.</strong>
+                        <small>.NET 10</small>
+                    </div>
+                      <div class="tm-items">
+                        <div><span>✓</span> Modello e validazioni <em>DONE</em></div>
+                        <div><span>●</span> Gestione attività <em>DOING</em></div>
+                        <div><span>○</span> Test e qualità <em>TODO</em></div>
+                        </div>
+                          <div class="tm-progress"><span></span></div>
+                          </div>
+                            <span class="visual-bottomline">
+                            PLAN · TRACK · COMPLETE
+                            </span>
+                } @else if (editorial(project)?.style === 'arcade') {
                     <div class="arcade-decor arcade-decor-one"></div><div class="arcade-decor arcade-decor-two"></div>
                     <div class="arcade-symbol"><span class="arcade-upper"></span><span class="arcade-center"></span><span class="arcade-lower"></span></div>
                     <span class="visual-bottomline">EXPLORE · PLAY · BUILD</span>
