@@ -43,15 +43,20 @@ export async function loadGithubProjects(signal: AbortSignal): Promise<GithubRep
   return filterPortfolioProjects(repositories);
 }
 
-export function filterPortfolioProjects(repositories: GithubRepository[]): GithubRepository[] {
+export function filterPortfolioProjects(
+  repositories: GithubRepository[]
+): GithubRepository[] {
   return repositories
     .filter((repo) =>
-      !!repo?.name &&
+      repo?.name?.toLowerCase() === 'pokexplorer' &&
       typeof repo.html_url === 'string' &&
-      !EXCLUDED_REPOSITORIES.has(repo.name.toLowerCase()) &&
-      repo.full_name?.toLowerCase().startsWith(`${GITHUB_USERNAME.toLowerCase()}/`)
+      repo.full_name?.toLowerCase().startsWith(
+        `${GITHUB_USERNAME.toLowerCase()}/`
+      )
     )
-    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at));
+    .sort((a, b) =>
+      Date.parse(b.updated_at) - Date.parse(a.updated_at)
+    );
 }
 
 /** Visible only if GitHub cannot be reached; transparently labeled in the UI. */
