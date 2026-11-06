@@ -105,7 +105,7 @@
           @for (project of projects(); track project.id; let index = $index) {
             <article class="project-card">
               <button class="project-card-hit" type="button" (click)="openProject(project, $event)" [attr.aria-label]="'Apri dettagli del progetto ' + projectTitle(project)">
-                <div class="project-visual" [class.visual-arcade]="editorial(project)?.style === 'arcade'" [class.visual-code]="editorial(project)?.style !== 'arcade'">
+                <div class="project-visual" [class.visual-taskmanager]="project.name.toLowerCase() === 'taskmanager'" [class.visual-arcade]="editorial(project)?.style === 'arcade'" [class.visual-code]="editorial(project)?.style !== 'arcade'">
                   <span class="visual-topline">PROJECT_{{ (index + 1).toString().padStart(2, '0') }} <span>↗</span></span>
                   @if (editorial(project)?.style === 'arcade') {
                     <div class="arcade-decor arcade-decor-one"></div><div class="arcade-decor arcade-decor-two"></div>
