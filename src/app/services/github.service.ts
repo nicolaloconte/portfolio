@@ -48,12 +48,14 @@ export function filterPortfolioProjects(
 ): GithubRepository[] {
   return repositories
     .filter((repo) =>
-      repo?.name?.toLowerCase() === 'pokexplorer' &&
-      typeof repo.html_url === 'string' &&
-      repo.full_name?.toLowerCase().startsWith(
-        `${GITHUB_USERNAME.toLowerCase()}/`
-      )
-    )
+  !new Set([
+    'pokexplorer-test',
+    'portfolio',
+    'nicolaloconte',
+    'nicolcnt'
+  ]).has(repo.name.toLowerCase()) &&
+  typeof repo.html_url === 'string'
+)
     .sort((a, b) =>
       Date.parse(b.updated_at) - Date.parse(a.updated_at)
     );
